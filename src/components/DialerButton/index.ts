@@ -1,1 +1,1 @@
-export * from './DialerButton';
+export { DialerButton } from './DialerButton';

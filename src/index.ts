@@ -1,4 +1,4 @@
-export { DialerPicker } from './components/DialerPicker';
+export { DialerButton, DialerPicker } from './components';
 export { DialerCode, CountryName } from './constants';
 export {
   DialerStyle,

@@ -11,6 +11,8 @@ import {
   TextInput,
   View,
   TextStyle,
+  ViewStyle,
+  StyleProp,
 } from 'react-native';
 import { DialerButton } from '../DialerButton';
 import { dialerRemover } from '../../helpers/dialerRemover';
@@ -65,6 +67,9 @@ interface Props {
   searchMessage?: string;
   androidWindowSoftInputMode?: string;
   initialState?: string;
+  otherCountriesHeaderTitle?: string;
+  otherCountriesHeaderTitleStyle?: TextStyle;
+  searchContainerStyle?: StyleProp<ViewStyle>;
 }
 
 export const DialerPicker = ({
@@ -86,6 +91,9 @@ export const DialerPicker = ({
   showOnly,
   ListHeaderComponent,
   itemTemplate: ItemTemplate = DialerButton,
+  otherCountriesHeaderTitle,
+  otherCountriesHeaderTitleStyle,
+  searchContainerStyle,
   ...rest
 }: Props) => {
   const filteredCodes = useMemo(
@@ -257,11 +265,16 @@ export const DialerPicker = ({
   const renderHeaderComponent = useMemo(() => {
     if (popularCountries && ListHeaderComponent && !searchValue) {
       return (
-        <ListHeaderComponent
-          countries={preparedPopularCountries}
-          lang={lang}
-          onPress={onPressHeaderItem}
-        />
+        <View>
+          <ListHeaderComponent
+            countries={preparedPopularCountries}
+            lang={lang}
+            onPress={onPressHeaderItem}
+          />
+          <Text style={otherCountriesHeaderTitleStyle}>
+            {otherCountriesHeaderTitle || 'Other Countries'}
+          </Text>
+        </View>
       );
     }
     return null;
@@ -272,6 +285,8 @@ export const DialerPicker = ({
     preparedPopularCountries,
     lang,
     onPressHeaderItem,
+    otherCountriesHeaderTitleStyle,
+    otherCountriesHeaderTitle,
   ]);
 
   const flatListStyle = useMemo(
@@ -327,6 +342,11 @@ export const DialerPicker = ({
 
   const lineStyle = useMemo(() => [styles.line, style?.line], [style?.line]);
 
+  const searchContainerStyles = useMemo(
+    () => [styles.searchContainer, searchContainerStyle],
+    [searchContainerStyle]
+  );
+
   return (
     <Modal
       animationType="fade"
@@ -343,7 +363,7 @@ export const DialerPicker = ({
           />
         )}
         <Animated.View style={modalStyle}>
-          <View style={styles.searchContainer}>
+          <View style={searchContainerStyles}>
             <TextInput
               style={textInputStyle}
               value={searchValue}
