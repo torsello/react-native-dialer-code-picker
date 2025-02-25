@@ -1,4 +1,3 @@
-
 # 📞 react-native-dialer-code-picker
 
 A performant and customizable dialer code picker for React Native apps.  
@@ -93,7 +92,9 @@ export default App;
   onClose={() => setIsVisible(false)}
   itemTemplate={({ item, name, onPress }) => (
     <TouchableOpacity onPress={onPress} style={{ padding: 10 }}>
-      <Text>{item.flag} {name} ({item.dial_code})</Text>
+      <Text>
+        {item.flag} {name} ({item.dial_code})
+      </Text>
     </TouchableOpacity>
   )}
 />
@@ -103,18 +104,18 @@ export default App;
 
 ## 📚 Props and API Details
 
-| Prop                         | Type                                      | Description                                         | Required | Default         |
-|-------------------------------|-------------------------------------------|-----------------------------------------------------|-----------|-----------------|
-| `isVisible`                   | `boolean`                                 | Shows or hides the dialer picker.                    | ✅        | `false`         |
-| `onDialCodeSelect`            | `(item: DialerCode) => void`               | Callback when a dialer code is selected.              | ✅        | `-`             |
-| `onClose`                     | `() => void`                              | Callback when the modal is closed.                   | ❌        | `-`             |
-| `searchPlaceholder`           | `string`                                  | Placeholder text for the search input.               | ❌        | `"Search..."`   |
-| `lang`                        | `string` (`'en' | 'es' | 'fr' | 'de'`)     | Selected language for country names.                 | ❌        | `"en"`          |
-| `excludedCountries`           | `string[]`                                | List of country codes to exclude from the picker.     | ❌        | `[]`            |
-| `popularCountries`            | `string[]`                                | List of popular countries to show at the top.        | ❌        | `[]`            |
-| `headerComponent`         | `(props: DialerListHeaderComponentProps) => JSX.Element` | Custom component for the list header.               | ❌        | `-`             |
-| `itemTemplate`                | `(props: DialerItemTemplateProps) => JSX.Element` | Custom template to render each item.                | ❌        | `DialerButton`  |
-| `style`                       | `DialerStyle`                             | Style object to customize the picker.                 | ❌        | `-`             |
+| Prop                | Type                                                     | Description                                       | Required | Default        |
+| ------------------- | -------------------------------------------------------- | ------------------------------------------------- | -------- | -------------- |
+| `isVisible`         | `boolean`                                                | Shows or hides the dialer picker.                 | ✅       | `false`        |
+| `onDialCodeSelect`  | `(item: DialerCode) => void`                             | Callback when a dialer code is selected.          | ✅       | `-`            |
+| `onClose`           | `() => void`                                             | Callback when the modal is closed.                | ❌       | `-`            |
+| `searchPlaceholder` | `string`                                                 | Placeholder text for the search input.            | ❌       | `"Search..."`  |
+| `lang`              | `string`                                                 | Selected language for country names.              | ❌       | `"en"`         |
+| `excludedCountries` | `string[]`                                               | List of country codes to exclude from the picker. | ❌       | `[]`           |
+| `popularCountries`  | `string[]`                                               | List of popular countries to show at the top.     | ❌       | `[]`           |
+| `headerComponent`   | `(props: DialerListHeaderComponentProps) => JSX.Element` | Custom component for the list header.             | ❌       | `-`            |
+| `itemTemplate`      | `(props: DialerItemTemplateProps) => JSX.Element`        | Custom template to render each item.              | ❌       | `DialerButton` |
+| `style`             | `DialerStyle`                                            | Style object to customize the picker.             | ❌       | `-`            |
 
 ---
 
