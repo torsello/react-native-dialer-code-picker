@@ -17,12 +17,10 @@ interface DialerListProps {
   excludedCountries?: string[];
   popularCountries?: string[];
   showOnly?: string[];
-  RenderHeaderComponent?: (
-    props: DialerListHeaderComponentProps
-  ) => JSX.Element;
-  RenderItemTemplate?: (props: DialerItemTemplateProps) => JSX.Element;
+  headerComponent?: (props: DialerListHeaderComponentProps) => JSX.Element;
+  itemTemplate?: (props: DialerItemTemplateProps) => JSX.Element;
   onDialCodeSelect: (item: DialerCode) => any;
-  containerStyle?: DialerStyle;
+  style?: DialerStyle;
 }
 
 export const DialerList = ({
@@ -31,10 +29,10 @@ export const DialerList = ({
   lang = 'en',
   searchQuery = '',
   excludedCountries,
-  containerStyle,
+  style,
   onDialCodeSelect,
-  RenderHeaderComponent,
-  RenderItemTemplate = DialerButton,
+  headerComponent: HeaderComponent,
+  itemTemplate: ItemTemplate = DialerButton,
   ...rest
 }: DialerListProps) => {
   const filteredCodes = useMemo(
@@ -85,15 +83,15 @@ export const DialerList = ({
     ({ item }: { item: DialerCode }) => {
       const itemName = getCountryName(item?.name, lang);
       return (
-        <RenderItemTemplate
+        <ItemTemplate
           item={item}
-          style={containerStyle}
+          style={style}
           name={itemName}
           onPress={() => handleOnPressItem(item)}
         />
       );
     },
-    [lang, RenderItemTemplate, containerStyle, handleOnPressItem]
+    [lang, ItemTemplate, style, handleOnPressItem]
   );
 
   const onPressHandler = useCallback(
@@ -105,9 +103,9 @@ export const DialerList = ({
   );
 
   const headerComponent = useCallback(() => {
-    if (popularCountries && RenderHeaderComponent) {
+    if (popularCountries && HeaderComponent) {
       return (
-        <RenderHeaderComponent
+        <HeaderComponent
           countries={preparedPopularCountries}
           lang={lang}
           onPress={onPressHandler}
@@ -116,7 +114,7 @@ export const DialerList = ({
     }
     return null;
   }, [
-    RenderHeaderComponent,
+    HeaderComponent,
     lang,
     onPressHandler,
     popularCountries,
@@ -124,8 +122,8 @@ export const DialerList = ({
   ]);
 
   const flatListStyle = useMemo(
-    () => [containerStyle?.itemsList].filter(Boolean),
-    [containerStyle]
+    () => [style?.itemsList].filter(Boolean),
+    [style]
   );
 
   return (
