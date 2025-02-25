@@ -92,8 +92,6 @@ export const DialerPicker = ({
   headerComponent: HeaderComponent,
   itemTemplate: ItemTemplate = DialerButton,
   otherCountriesHeaderTitle,
-  otherCountriesHeaderTitleStyle,
-  searchContainerStyle,
   ...rest
 }: Props) => {
   const filteredCodes = useMemo(
@@ -271,7 +269,7 @@ export const DialerPicker = ({
             lang={lang}
             onPress={onPressHeaderItem}
           />
-          <Text style={otherCountriesHeaderTitleStyle}>
+          <Text style={style?.otherCountriesHeaderTitleStyle}>
             {otherCountriesHeaderTitle || 'Other Countries'}
           </Text>
         </View>
@@ -285,7 +283,7 @@ export const DialerPicker = ({
     preparedPopularCountries,
     lang,
     onPressHeaderItem,
-    otherCountriesHeaderTitleStyle,
+    style?.otherCountriesHeaderTitleStyle,
     otherCountriesHeaderTitle,
   ]);
 
@@ -343,8 +341,8 @@ export const DialerPicker = ({
   const lineStyle = useMemo(() => [styles.line, style?.line], [style?.line]);
 
   const searchContainerStyles = useMemo(
-    () => [styles.searchContainer, searchContainerStyle],
-    [searchContainerStyle]
+    () => [styles.searchContainer, style?.searchContainerStyle],
+    [style?.searchContainerStyle]
   );
 
   return (

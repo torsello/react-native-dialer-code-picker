@@ -63,4 +63,6 @@ export type DialerStyle = Partial<{
   flag: TextStyle;
   dialCode: TextStyle;
   dialerName: TextStyle;
+  otherCountriesHeaderTitleStyle: TextStyle;
+  searchContainerStyle: ViewStyle;
 }>;
