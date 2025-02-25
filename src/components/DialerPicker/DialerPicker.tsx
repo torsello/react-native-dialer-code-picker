@@ -52,42 +52,42 @@ interface Props {
   excludedCountries?: string[];
   showOnly?: string[];
   popularCountries?: string[];
-  style?: DialerStyle;
-  show: boolean;
+  containerStyle?: DialerStyle;
+  isVisible: boolean;
   enableModalAvoiding?: boolean;
   disableBackdrop?: boolean;
   onBackdropPress?: (...args: any) => any;
-  pickerButtonOnPress: (item: DialerCode) => any;
+  onDialCodeSelect: (item: DialerCode) => any;
   itemTemplate?: (props: DialerItemTemplateProps) => JSX.Element;
   ListHeaderComponent?: (props: DialerListHeaderComponentProps) => JSX.Element;
-  onRequestClose?: (...args: any) => any;
+  onClose?: (...args: any) => any;
   lang: keyof CountryName;
-  inputPlaceholder?: string;
-  inputPlaceholderTextColor?: TextStyle['color'];
+  searchPlaceholder?: string;
+  searchPlaceholderTextColor?: TextStyle['color'];
   searchMessage?: string;
   androidWindowSoftInputMode?: string;
-  initialState?: string;
+  defaultDialCode?: string;
   otherCountriesHeaderTitle?: string;
   otherCountriesHeaderTitleStyle?: TextStyle;
   searchContainerStyle?: StyleProp<ViewStyle>;
 }
 
 export const DialerPicker = ({
-  show,
+  isVisible,
   popularCountries,
-  pickerButtonOnPress,
-  inputPlaceholder,
-  inputPlaceholderTextColor,
+  onDialCodeSelect,
+  searchPlaceholder,
+  searchPlaceholderTextColor,
   searchMessage,
   lang = 'en',
-  style,
+  containerStyle,
   enableModalAvoiding,
   androidWindowSoftInputMode,
   onBackdropPress,
   disableBackdrop,
   excludedCountries,
-  initialState,
-  onRequestClose,
+  defaultDialCode,
+  onClose,
   showOnly,
   ListHeaderComponent,
   itemTemplate: ItemTemplate = DialerButton,
@@ -103,7 +103,7 @@ export const DialerPicker = ({
   const keyboardStatus = useKeyboardStatus();
   const animationDriver = useRef(new Animated.Value(0)).current;
   const animatedMargin = useRef(new Animated.Value(0)).current;
-  const [searchValue, setSearchValue] = useState<string>(initialState || '');
+  const [searchValue, setSearchValue] = useState<string>(defaultDialCode || '');
   const [showModal, setShowModal] = useState<boolean>(false);
 
   const animateMargin = useCallback(
@@ -217,19 +217,19 @@ export const DialerPicker = ({
   }, [animateModal]);
 
   useEffect(() => {
-    if (show && !showModal) {
+    if (isVisible && !showModal) {
       setShowModal(true);
-    } else if (!show && showModal) {
+    } else if (!isVisible && showModal) {
       closeModal();
     }
-  }, [closeModal, show, showModal]);
+  }, [closeModal, isVisible, showModal]);
 
   const renderItemOnPress = useCallback(
     (item: DialerCode) => {
       Keyboard.dismiss();
-      pickerButtonOnPress?.(item);
+      onDialCodeSelect?.(item);
     },
-    [pickerButtonOnPress]
+    [onDialCodeSelect]
   );
 
   const renderItem = useCallback(
@@ -240,13 +240,13 @@ export const DialerPicker = ({
         <ItemTemplate
           key={item.code}
           item={item}
-          style={style}
+          style={containerStyle}
           name={itemName}
           onPress={() => renderItemOnPress(item)}
         />
       );
     },
-    [lang, ItemTemplate, style, renderItemOnPress]
+    [lang, ItemTemplate, containerStyle, renderItemOnPress]
   );
 
   const onStartShouldSetResponder = useCallback(() => {
@@ -257,9 +257,9 @@ export const DialerPicker = ({
   const onPressHeaderItem = useCallback(
     (item: DialerCode) => {
       Keyboard.dismiss();
-      pickerButtonOnPress?.(item);
+      onDialCodeSelect?.(item);
     },
-    [pickerButtonOnPress]
+    [onDialCodeSelect]
   );
 
   const renderHeaderComponent = useMemo(() => {
@@ -290,8 +290,8 @@ export const DialerPicker = ({
   ]);
 
   const flatListStyle = useMemo(
-    () => (style?.itemsList ? [style.itemsList] : undefined),
-    [style]
+    () => (containerStyle?.itemsList ? [containerStyle.itemsList] : undefined),
+    [containerStyle]
   );
 
   const modalBackdropStyle = useMemo(
@@ -300,15 +300,15 @@ export const DialerPicker = ({
         opacity: modalBackdropFade,
       },
       styles.backdrop,
-      style?.backdrop,
+      containerStyle?.backdrop,
     ],
-    [modalBackdropFade, style?.backdrop]
+    [modalBackdropFade, containerStyle?.backdrop]
   );
 
   const modalStyle = useMemo(
     () => [
       styles.modal,
-      style?.modal,
+      containerStyle?.modal,
       {
         transform: [
           {
@@ -317,30 +317,37 @@ export const DialerPicker = ({
         ],
       },
     ],
-    [modalPosition, style?.modal]
+    [modalPosition, containerStyle?.modal]
   );
 
   const modalInnerStyle = useMemo(
-    () => [styles.modalInner, style?.modalInner, { height: animatedMargin }],
-    [style?.modalInner, animatedMargin]
+    () => [
+      styles.modalInner,
+      containerStyle?.modalInner,
+      { height: animatedMargin },
+    ],
+    [containerStyle?.modalInner, animatedMargin]
   );
 
   const textInputStyle = useMemo(
-    () => [styles.searchBar, style?.textInput],
-    [style?.textInput]
+    () => [styles.searchBar, containerStyle?.textInput],
+    [containerStyle?.textInput]
   );
 
   const searchMessageTextStyle = useMemo(
-    () => [styles.searchMessage, style?.searchMessageText],
-    [style?.searchMessageText]
+    () => [styles.searchMessage, containerStyle?.searchMessageText],
+    [containerStyle?.searchMessageText]
   );
 
   const dialerMessageContainerStyle = useMemo(
-    () => [styles.dialerMessage, style?.dialerMessageContainer],
-    [style?.dialerMessageContainer]
+    () => [styles.dialerMessage, containerStyle?.dialerMessageContainer],
+    [containerStyle?.dialerMessageContainer]
   );
 
-  const lineStyle = useMemo(() => [styles.line, style?.line], [style?.line]);
+  const lineStyle = useMemo(
+    () => [styles.line, containerStyle?.line],
+    [containerStyle?.line]
+  );
 
   const searchContainerStyles = useMemo(
     () => [styles.searchContainer, searchContainerStyle],
@@ -353,7 +360,7 @@ export const DialerPicker = ({
       transparent={true}
       visible={showModal}
       onShow={openModal}
-      onRequestClose={onRequestClose}
+      onRequestClose={onClose}
     >
       <View style={styles.modalContainer}>
         {!disableBackdrop && (
@@ -368,8 +375,8 @@ export const DialerPicker = ({
               style={textInputStyle}
               value={searchValue}
               onChangeText={setSearchValue}
-              placeholder={inputPlaceholder || 'Search your dialer'}
-              placeholderTextColor={inputPlaceholderTextColor || '#8c8c8c'}
+              placeholder={searchPlaceholder || 'Search your dialer'}
+              placeholderTextColor={searchPlaceholderTextColor || '#8c8c8c'}
               testID="dialerCodesPickerSearchInput"
               {...rest}
             />

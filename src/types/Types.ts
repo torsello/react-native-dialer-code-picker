@@ -24,7 +24,7 @@ export interface DialerItemTemplateProps<T = DialerCode> {
   /**
    * Function to be called when the item is pressed.
    */
-  onPress?: (arg: any) => any;
+  onPress?: (arg: any) => void;
 }
 
 /**

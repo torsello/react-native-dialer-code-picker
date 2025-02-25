@@ -13,26 +13,28 @@ import { getCountryName } from '../../helpers/getCountryName';
 
 interface DialerListProps {
   lang: keyof CountryName;
-  searchValue?: string;
+  searchQuery?: string;
   excludedCountries?: string[];
   popularCountries?: string[];
   showOnly?: string[];
-  ListHeaderComponent?: (props: DialerListHeaderComponentProps) => JSX.Element;
-  itemTemplate?: (props: DialerItemTemplateProps) => JSX.Element;
-  pickerButtonOnPress: (item: DialerCode) => any;
-  style?: DialerStyle;
+  RenderHeaderComponent?: (
+    props: DialerListHeaderComponentProps
+  ) => JSX.Element;
+  RenderItemTemplate?: (props: DialerItemTemplateProps) => JSX.Element;
+  onDialCodeSelect: (item: DialerCode) => any;
+  containerStyle?: DialerStyle;
 }
 
 export const DialerList = ({
   showOnly,
   popularCountries,
   lang = 'en',
-  searchValue = '',
+  searchQuery = '',
   excludedCountries,
-  style,
-  pickerButtonOnPress,
-  ListHeaderComponent,
-  itemTemplate: ItemTemplate = DialerButton,
+  containerStyle,
+  onDialCodeSelect,
+  RenderHeaderComponent,
+  RenderItemTemplate = DialerButton,
   ...rest
 }: DialerListProps) => {
   const filteredCodes = useMemo(
@@ -57,55 +59,55 @@ export const DialerList = ({
   }, [showOnly, filteredCodes]);
 
   const resultCountries = useMemo(() => {
-    const lowerSearchValue = searchValue.toLowerCase().trim();
+    const lowerSearchValue = searchQuery.toLowerCase().trim();
 
     return codes
       .filter((dialer) => {
         const countryName = getCountryName(dialer?.name, lang).toLowerCase();
         return (
-          dialer?.dial_code.includes(searchValue) ||
+          dialer?.dial_code.includes(searchQuery) ||
           countryName.includes(lowerSearchValue) ||
           removeDiacritics(countryName).includes(lowerSearchValue)
         );
       })
       .filter(Boolean);
-  }, [searchValue, lang, codes]);
+  }, [searchQuery, lang, codes]);
 
   const handleOnPressItem = useCallback(
     (item: DialerCode) => {
       Keyboard.dismiss();
-      pickerButtonOnPress?.(item);
+      onDialCodeSelect?.(item);
     },
-    [pickerButtonOnPress]
+    [onDialCodeSelect]
   );
 
   const renderItem = useCallback(
     ({ item }: { item: DialerCode }) => {
       const itemName = getCountryName(item?.name, lang);
       return (
-        <ItemTemplate
+        <RenderItemTemplate
           item={item}
-          style={style}
+          style={containerStyle}
           name={itemName}
           onPress={() => handleOnPressItem(item)}
         />
       );
     },
-    [lang, ItemTemplate, style, handleOnPressItem]
+    [lang, RenderItemTemplate, containerStyle, handleOnPressItem]
   );
 
   const onPressHandler = useCallback(
     (item: DialerCode) => {
       Keyboard.dismiss();
-      pickerButtonOnPress?.(item);
+      onDialCodeSelect?.(item);
     },
-    [pickerButtonOnPress]
+    [onDialCodeSelect]
   );
 
-  const renderHeaderComponent = () => {
-    if (popularCountries && ListHeaderComponent) {
+  const headerComponent = useCallback(() => {
+    if (popularCountries && RenderHeaderComponent) {
       return (
-        <ListHeaderComponent
+        <RenderHeaderComponent
           countries={preparedPopularCountries}
           lang={lang}
           onPress={onPressHandler}
@@ -113,11 +115,17 @@ export const DialerList = ({
       );
     }
     return null;
-  };
+  }, [
+    RenderHeaderComponent,
+    lang,
+    onPressHandler,
+    popularCountries,
+    preparedPopularCountries,
+  ]);
 
   const flatListStyle = useMemo(
-    () => [style?.itemsList].filter(Boolean),
-    [style]
+    () => [containerStyle?.itemsList].filter(Boolean),
+    [containerStyle]
   );
 
   return (
@@ -130,7 +138,7 @@ export const DialerList = ({
       style={flatListStyle}
       keyboardShouldPersistTaps="handled"
       renderItem={renderItem}
-      ListHeaderComponent={renderHeaderComponent()}
+      ListHeaderComponent={headerComponent()}
       {...rest}
     />
   );

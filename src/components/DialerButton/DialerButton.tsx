@@ -1,22 +1,42 @@
 import { Text, TouchableOpacity, StyleSheet, TextStyle } from 'react-native';
 import { DialerItemTemplateProps } from '../../types';
+import { useMemo } from 'react';
 
 export const DialerButton = ({
   item,
   name,
   style,
   ...rest
-}: DialerItemTemplateProps) => (
-  <TouchableOpacity
-    style={[styles.dialerButton, style?.dialerButtonStyles]}
-    testID="dialerCodesPickerDialerButton"
-    {...rest}
-  >
-    <Text style={[styles.flag, style?.flag]}>{item?.flag}</Text>
-    <Text style={[styles.dialCode, style?.dialCode]}>{item?.dial_code}</Text>
-    <Text style={[styles.dialerName, style?.dialerName]}>{name}</Text>
-  </TouchableOpacity>
-);
+}: DialerItemTemplateProps) => {
+  const dialerButtonStyles = useMemo(
+    () => [styles.dialerButton, style?.dialerButtonStyles],
+    [style?.dialerButtonStyles]
+  );
+
+  const flagStyles = useMemo(() => [styles.flag, style?.flag], [style?.flag]);
+
+  const dialCodeStyles = useMemo(
+    () => [styles.dialCode, style?.dialCode],
+    [style?.dialCode]
+  );
+
+  const dialerNameStyles = useMemo(
+    () => [styles.dialerName, style?.dialerName],
+    [style?.dialerName]
+  );
+
+  return (
+    <TouchableOpacity
+      style={dialerButtonStyles}
+      testID="dialerCodesPickerDialerButton"
+      {...rest}
+    >
+      <Text style={flagStyles}>{item?.flag}</Text>
+      <Text style={dialCodeStyles}>{item?.dial_code}</Text>
+      <Text style={dialerNameStyles}>{name}</Text>
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
   dialerButton: {
