@@ -201,7 +201,7 @@ export const DialerPicker = ({
     (toValue: number, onComplete?: () => void) => {
       Animated.timing(animationDriver, {
         toValue,
-        duration: 200,
+        duration: 350,
         useNativeDriver: false,
       }).start(onComplete);
     },

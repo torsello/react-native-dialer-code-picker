@@ -128,27 +128,47 @@ const BottomSheetDialer = () => {
 
 ### DialerPicker Props
 
-| Prop                | Type                                                     | Description                                   | Required | Default       |
-| ------------------- | -------------------------------------------------------- | --------------------------------------------- | -------- | ------------- |
-| `isVisible`         | `boolean`                                                | Controls the visibility of the modal.         | ✅       | `false`       |
-| `onDialCodeSelect`  | `(item: DialerCode) => void`                             | Callback when a dialer code is selected.      | ✅       | `-`           |
-| `onClose`           | `() => void`                                             | Callback when the modal is closed.            | ❌       | `-`           |
-| `searchPlaceholder` | `string`                                                 | Placeholder text for the search input.        | ❌       | `"Search..."` |
-| `lang`              | `string`                                                 | Selected language for country names.          | ❌       | `"en"`        |
-| `popularCountries`  | `string[]`                                               | List of popular countries to show at the top. | ❌       | `[]`          |
-| `headerComponent`   | `(props: DialerListHeaderComponentProps) => JSX.Element` | Custom component for the list header.         | ❌       | `-`           |
-| `style`             | `DialerStyle`                                            | Style object to customize the picker.         | ❌       | `-`           |
+| Prop                             | Type                                                     | Description                                                        | Required | Default        |
+| -------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------ | -------- | -------------- |
+| `isVisible`                      | `boolean`                                                | Controls the visibility of the modal.                              | ✅       | `false`        |
+| `enableModalAvoiding`            | `boolean`                                                | Enables keyboard avoiding behavior on Android.                     | ❌       | `false`        |
+| `disableBackdrop`                | `boolean`                                                | If `true`, disables the backdrop behind the modal.                 | ❌       | `false`        |
+| `androidWindowSoftInputMode`     | `string`                                                 | Defines keyboard behavior on Android (e.g., `"pan"`).              | ❌       | `-`            |
+| `searchPlaceholder`              | `string`                                                 | Placeholder text for the search input.                             | ❌       | `"Search..."`  |
+| `searchPlaceholderTextColor`     | `string`                                                 | Color of the placeholder text in the search input field.           | ❌       | `-`            |
+| `searchNotFoundMessage`          | `string`                                                 | Message displayed when no results are found.                       | ❌       | `-`            |
+| `lang`                           | `string`                                                 | Selected language for country names.                               | ✅       | `"en"`         |
+| `defaultDialCode`                | `string`                                                 | Default dial code to be pre-selected.                              | ❌       | `-`            |
+| `otherCountriesHeaderTitle`      | `string`                                                 | Title for the "Other Countries" section.                           | ❌       | `-`            |
+| `otherCountriesHeaderTitleStyle` | `TextStyle`                                              | Styles for the "Other Countries" header title.                     | ❌       | `-`            |
+| `searchContainerStyle`           | `StyleProp<ViewStyle>`                                   | Custom styles for the search input container.                      | ❌       | `-`            |
+| `excludedCountries`              | `string[]`                                               | List of country codes to exclude from the picker.                  | ❌       | `[]`           |
+| `showOnly`                       | `string[]`                                               | List of country codes to exclusively show.                         | ❌       | `[]`           |
+| `popularCountries`               | `string[]`                                               | List of popular countries to show at the top.                      | ❌       | `[]`           |
+| `onDialCodeSelect`               | `(item: DialerCode) => void`                             | Callback when a dialer code is selected.                           | ✅       | `-`            |
+| `onBackdropPress`                | `() => void`                                             | Callback when the backdrop is pressed.                             | ❌       | `-`            |
+| `onClose`                        | `() => void`                                             | Callback when the modal is closed.                                 | ❌       | `-`            |
+| `itemTemplate`                   | `(props: DialerItemTemplateProps) => JSX.Element`        | Custom template to render each item.                               | ❌       | `DialerButton` |
+| `headerComponent`                | `(props: DialerListHeaderComponentProps) => JSX.Element` | Custom component for the list header.                              | ❌       | `-`            |
+| `style`                          | `DialerStyle`                                            | Style object to customize the picker.                              | ❌       | `-`            |
+| `showVerticalScrollIndicator`    | `boolean`                                                | Whether to show the vertical scroll indicator. Default is `false`. | ❌       | `false`        |
 
 ### DialerList Props
 
-| Prop                | Type                                                     | Description                                         | Required | Default |
-| ------------------- | -------------------------------------------------------- | --------------------------------------------------- | -------- | ------- |
-| `excludedCountries` | `string[]`                                               | List of country codes to exclude.                   | ❌       | `[]`    |
-| `showOnly`          | `string[]`                                               | List of country codes to exclusively show.          | ❌       | `[]`    |
-| `popularCountries`  | `string[]`                                               | List of popular country codes displayed at the top. | ❌       | `[]`    |
-| `onDialCodeSelect`  | `(item: DialerCode) => void`                             | Callback triggered when a dial code is selected.    | ✅       | `-`     |
-| `lang`              | `string`                                                 | Language code for country names.                    | ✅       | `"en"`  |
-| `headerComponent`   | `(props: DialerListHeaderComponentProps) => JSX.Element` | Custom component for the list header.               | ❌       | `-`     |
+| Prop                             | Type                                                     | Description                                                        | Required | Default        |
+| -------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------ | -------- | -------------- |
+| `excludedCountries`              | `string[]`                                               | List of country codes to exclude.                                  | ❌       | `[]`           |
+| `showOnly`                       | `string[]`                                               | List of country codes to exclusively show.                         | ❌       | `[]`           |
+| `popularCountries`               | `string[]`                                               | List of popular country codes displayed at the top.                | ❌       | `[]`           |
+| `onDialCodeSelect`               | `(item: DialerCode) => void`                             | Callback triggered when a dial code is selected.                   | ✅       | `-`            |
+| `lang`                           | `string`                                                 | Language code for country names.                                   | ✅       | `"en"`         |
+| `headerComponent`                | `(props: DialerListHeaderComponentProps) => JSX.Element` | Custom component for the list header.                              | ❌       | `-`            |
+| `itemTemplate`                   | `(props: DialerItemTemplateProps) => JSX.Element`        | Custom component for rendering each item.                          | ❌       | `DialerButton` |
+| `style`                          | `DialerStyle`                                            | Style object to customize the component.                           | ❌       | `-`            |
+| `searchContainerStyle`           | `StyleProp<ViewStyle>`                                   | Custom styles for the search container.                            | ❌       | `-`            |
+| `otherCountriesHeaderTitleStyle` | `TextStyle`                                              | Style for the "Other Countries" header title.                      | ❌       | `-`            |
+| `showVerticalScrollIndicator`    | `boolean`                                                | Whether to show the vertical scroll indicator. Default is `false`. | ❌       | `false`        |
+| `searchValue`                    | `string`                                                 | Text input for filtering countries by name or dial code.           | ❌       | `-`            |
 
 ---
 
