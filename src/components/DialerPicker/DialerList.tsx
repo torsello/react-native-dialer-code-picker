@@ -1,6 +1,13 @@
-import { FlatList, Keyboard, Platform, StyleSheet } from 'react-native';
+import React from 'react';
+import {
+  Keyboard,
+  StyleProp,
+  Text,
+  TextStyle,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { type CountryName, type DialerCode } from '../../constants/dialerCodes';
-import { removeDiacritics } from '../../helpers/diacriticsRemover';
 import { useCallback, useMemo } from 'react';
 import { dialerRemover } from '../../helpers/dialerRemover';
 import type {
@@ -8,29 +15,89 @@ import type {
   DialerListHeaderComponentProps,
   DialerStyle,
 } from '../../types';
-import { DialerButton } from '../DialerButton';
+import DialerButton from '../DialerButton';
 import { getCountryName } from '../../helpers/getCountryName';
+import { FlashList } from '@shopify/flash-list';
+import { removeDiacritics } from '../../helpers/diacriticsRemover';
+
+/**
+ * DialerList Component
+ *
+ * A high-performance list component for displaying country dialing codes with search, filtering, and customization options.
+ * Uses `FlashList` from '@shopify/flash-list' for optimized rendering of large datasets.
+ *
+ * @param {string[]} [excludedCountries] - Array of country codes to be excluded from the list.
+ * @param {string[]} [showOnly] - Array of country codes to be exclusively shown.
+ * @param {string[]} [popularCountries] - Array of popular country codes to be displayed at the top.
+ * @param {keyof CountryName} lang - Language code for displaying country names (e.g., 'en', 'es'). Default is `'en'`.
+ * @param {string} [otherCountriesHeaderTitle] - Custom title for the section listing other countries. Default is `'Other Countries'`.
+ * @param {boolean} [showVerticalScrollIndicator] - Whether to show the vertical scroll indicator. Default is `false`.
+ * @param {string} [searchValue] - Text input for filtering countries by name or dial code.
+ * @param {Function} onDialCodeSelect - Callback function triggered when a dial code is selected. Receives the selected item as an argument.
+ * @example
+ * onDialCodeSelect={(item) => console.log(item)}
+ *
+ * @param {(props: DialerItemTemplateProps) => JSX.Element | React.MemoExoticComponent<(props: DialerItemTemplateProps) => JSX.Element>} [itemTemplate]
+ * Custom component for rendering each item in the list.
+ * @example
+ * itemTemplate={(props) => <CustomItemComponent {...props} />}
+ *
+ * @param {(props: DialerListHeaderComponentProps) => JSX.Element} [headerComponent]
+ * Custom component for rendering the list header, usually for popular countries.
+ * @example
+ * headerComponent={(props) => <CustomHeader {...props} />}
+ *
+ * @param {DialerStyle} [style] - Customizable styles for the component.
+ * The `DialerStyle` object allows partial overrides of specific elements:
+ * - `backdrop` (ViewStyle): Style for the background overlay (if used in a modal).
+ * - `modal` (ViewStyle): Style for the modal container.
+ * - `line` (ViewStyle): Style for the separator line between items.
+ * - `searchNotFoundMessageText` (TextStyle): Style for the "No results found" message text.
+ * - `itemsList` (ContentStyle): Style for the main list container.
+ * - `searchNotFoundContainer` (ViewStyle): Style for the container wrapping the "No results found" message.
+ * - `textInput` (TextStyle): Style for the search input field.
+ * - `dialerButtonStyles` (ViewStyle): Style for the button representing a dialer item.
+ * - `flag` (TextStyle): Style for the country flag icon (if applicable).
+ * - `dialCode` (TextStyle): Style for the country dial code text.
+ * - `dialerName` (TextStyle): Style for the country name text.
+ * - `otherCountriesHeaderTitleStyle` (TextStyle): Style for the "Other Countries" header title.
+ * - `searchContainerStyle` (ViewStyle): Style for the search bar container.
+ *
+ * @param {StyleProp<ViewStyle>} [searchContainerStyle] - Custom styles for the search container.
+ * @param {TextStyle} [otherCountriesHeaderTitleStyle] - Style for the header title of other countries.
+ * @param {object} [rest] - Any additional props passed to the internal `FlashList` component.
+ */
 
 interface DialerListProps {
-  lang: keyof CountryName;
-  searchQuery?: string;
   excludedCountries?: string[];
   popularCountries?: string[];
   showOnly?: string[];
-  headerComponent?: (props: DialerListHeaderComponentProps) => JSX.Element;
-  itemTemplate?: (props: DialerItemTemplateProps) => JSX.Element;
   onDialCodeSelect: (item: DialerCode) => any;
   style?: DialerStyle;
+  otherCountriesHeaderTitleStyle?: TextStyle;
+  searchContainerStyle?: StyleProp<ViewStyle>;
+  itemTemplate?:
+    | ((props: DialerItemTemplateProps) => JSX.Element)
+    | React.MemoExoticComponent<
+        (props: DialerItemTemplateProps) => JSX.Element
+      >;
+  headerComponent?: (props: DialerListHeaderComponentProps) => JSX.Element;
+  lang: keyof CountryName;
+  otherCountriesHeaderTitle?: string;
+  showVerticalScrollIndicator?: boolean;
+  searchValue?: string;
 }
 
 export const DialerList = ({
-  showOnly,
-  popularCountries,
-  lang = 'en',
-  searchQuery = '',
   excludedCountries,
-  style,
+  popularCountries,
+  showOnly,
   onDialCodeSelect,
+  lang = 'en',
+  style,
+  otherCountriesHeaderTitle,
+  showVerticalScrollIndicator = false,
+  searchValue,
   headerComponent: HeaderComponent,
   itemTemplate: ItemTemplate = DialerButton,
   ...rest
@@ -49,29 +116,79 @@ export const DialerList = ({
   }, [popularCountries, filteredCodes]);
 
   const codes = useMemo(() => {
+    let newCodes = filteredCodes;
+
     if (showOnly?.length) {
       const showOnlySet = new Set(showOnly.map((short) => short.toUpperCase()));
-      return filteredCodes?.filter((dialer) => showOnlySet.has(dialer?.code));
+      newCodes = filteredCodes?.filter((dialer) =>
+        showOnlySet.has(dialer?.code)
+      );
     }
-    return filteredCodes;
-  }, [showOnly, filteredCodes]);
 
-  const resultCountries = useMemo(() => {
-    const lowerSearchValue = searchQuery.toLowerCase().trim();
+    return newCodes
+      .slice()
+      .sort((a, b) =>
+        getCountryName(a?.name, lang).localeCompare(
+          getCountryName(b?.name, lang)
+        )
+      );
+  }, [showOnly, filteredCodes, lang]);
 
-    return codes
-      .filter((dialer) => {
-        const countryName = getCountryName(dialer?.name, lang).toLowerCase();
-        return (
-          dialer?.dial_code.includes(searchQuery) ||
-          countryName.includes(lowerSearchValue) ||
-          removeDiacritics(countryName).includes(lowerSearchValue)
-        );
-      })
-      .filter(Boolean);
-  }, [searchQuery, lang, codes]);
+  const filteredResults = useMemo(() => {
+    if (!searchValue) return codes;
 
-  const handleOnPressItem = useCallback(
+    const lowerSearchValue = searchValue.toLowerCase().trim();
+
+    return codes.filter((dialer) => {
+      const countryName = getCountryName(dialer?.name, lang).toLowerCase();
+      return (
+        dialer?.dial_code.includes(searchValue) ||
+        countryName.includes(lowerSearchValue) ||
+        removeDiacritics(countryName).includes(lowerSearchValue)
+      );
+    });
+  }, [searchValue, lang, codes]);
+
+  const onPressHeaderItem = useCallback(
+    (item: DialerCode) => {
+      Keyboard.dismiss();
+      onDialCodeSelect?.(item);
+    },
+    [onDialCodeSelect]
+  );
+
+  const renderHeaderComponent = useMemo(() => {
+    if (popularCountries && HeaderComponent) {
+      return (
+        <View>
+          <HeaderComponent
+            countries={preparedPopularCountries}
+            lang={lang}
+            onPress={onPressHeaderItem}
+          />
+          <Text style={style?.otherCountriesHeaderTitleStyle}>
+            {otherCountriesHeaderTitle || 'Other Countries'}
+          </Text>
+        </View>
+      );
+    }
+    return null;
+  }, [
+    popularCountries,
+    HeaderComponent,
+    preparedPopularCountries,
+    lang,
+    onPressHeaderItem,
+    style?.otherCountriesHeaderTitleStyle,
+    otherCountriesHeaderTitle,
+  ]);
+
+  const keyExtractor = useCallback(
+    (item: any) => String(item.code || item.dial_code),
+    []
+  );
+
+  const renderItemOnPress = useCallback(
     (item: DialerCode) => {
       Keyboard.dismiss();
       onDialCodeSelect?.(item);
@@ -82,121 +199,34 @@ export const DialerList = ({
   const renderItem = useCallback(
     ({ item }: { item: DialerCode }) => {
       const itemName = getCountryName(item?.name, lang);
+
       return (
         <ItemTemplate
+          key={item.code}
           item={item}
           style={style}
           name={itemName}
-          onPress={() => handleOnPressItem(item)}
+          onPress={() => renderItemOnPress(item)}
         />
       );
     },
-    [lang, ItemTemplate, style, handleOnPressItem]
-  );
-
-  const onPressHandler = useCallback(
-    (item: DialerCode) => {
-      Keyboard.dismiss();
-      onDialCodeSelect?.(item);
-    },
-    [onDialCodeSelect]
-  );
-
-  const headerComponent = useCallback(() => {
-    if (popularCountries && HeaderComponent) {
-      return (
-        <HeaderComponent
-          countries={preparedPopularCountries}
-          lang={lang}
-          onPress={onPressHandler}
-        />
-      );
-    }
-    return null;
-  }, [
-    HeaderComponent,
-    lang,
-    onPressHandler,
-    popularCountries,
-    preparedPopularCountries,
-  ]);
-
-  const flatListStyle = useMemo(
-    () => [style?.itemsList].filter(Boolean),
-    [style]
+    [ItemTemplate, lang, renderItemOnPress, style]
   );
 
   return (
-    <FlatList
-      showsVerticalScrollIndicator={false}
-      data={resultCountries || codes}
-      keyExtractor={(item) => item?.dial_code}
-      initialNumToRender={10}
-      maxToRenderPerBatch={10}
-      style={flatListStyle}
+    <FlashList
+      showsVerticalScrollIndicator={showVerticalScrollIndicator}
+      data={filteredResults}
+      keyExtractor={keyExtractor}
+      contentContainerStyle={style?.itemsList}
+      estimatedItemSize={54}
       keyboardShouldPersistTaps="handled"
       renderItem={renderItem}
-      ListHeaderComponent={headerComponent()}
+      testID="dialerCodesPickerFlashList"
+      ListHeaderComponent={renderHeaderComponent}
+      extraData={searchValue}
+      removeClippedSubviews={true}
       {...rest}
     />
   );
 };
-
-export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'flex-end',
-  },
-  modal: {
-    backgroundColor: 'white',
-    width: '100%',
-    maxWidth: Platform.OS === 'web' ? 600 : undefined,
-    borderTopRightRadius: 15,
-    borderTopLeftRadius: 15,
-    padding: 10,
-
-    // Shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    bottom: 0,
-    zIndex: 10,
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // Elevation for Android
-    elevation: 10,
-  },
-  modalInner: {
-    zIndex: 99,
-    backgroundColor: 'white',
-    width: '100%',
-  },
-  searchBar: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    height: 40,
-    padding: 5,
-  },
-  dialerMessage: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: 250,
-  },
-  line: {
-    width: '100%',
-    height: 1.5,
-    borderRadius: 2,
-    backgroundColor: '#eceff1',
-    alignSelf: 'center',
-    marginVertical: 5,
-  },
-});

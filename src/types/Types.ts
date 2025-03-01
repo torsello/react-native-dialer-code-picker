@@ -1,5 +1,6 @@
 import { ViewStyle, TextStyle } from 'react-native';
 import { DialerCode } from '../constants/dialerCodes';
+import { ContentStyle } from '@shopify/flash-list';
 
 /**
  * Props for the item template component in the Dialer.
@@ -54,10 +55,9 @@ export type DialerStyle = Partial<{
   backdrop: ViewStyle;
   modal: ViewStyle;
   line: ViewStyle;
-  searchMessageText: TextStyle;
-  itemsList: ViewStyle;
-  modalInner: ViewStyle;
-  dialerMessageContainer: ViewStyle;
+  searchNotFoundMessageText: TextStyle;
+  itemsList: ContentStyle;
+  searchNotFoundContainer: ViewStyle;
   textInput: TextStyle;
   dialerButtonStyles: ViewStyle;
   flag: TextStyle;

@@ -1,8 +1,25 @@
 import { Text, TouchableOpacity, StyleSheet, TextStyle } from 'react-native';
 import { DialerItemTemplateProps } from '../../types';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 
-export const DialerButton = ({
+/**
+ * DialerButton Component
+ *
+ * A customizable button component used to display a dialer item, including:
+ * - Flag icon
+ * - Dial code (e.g., +1, +44)
+ * - Country/region name
+ *
+ * This component is intended to be used as the default item template in the Dialer List.
+ *
+ * @param {DialerItemTemplateProps} props - Props for the item template.
+ * - `item`: The item to be displayed (e.g., country code information).
+ * - `name`: The name of the country or region.
+ * - `style`: Custom styles for the button and text elements.
+ * - `onPress`: Callback function when the item is pressed.
+ */
+
+const DialerButton = ({
   item,
   name,
   style,
@@ -61,3 +78,5 @@ const styles = StyleSheet.create({
     flex: 1,
   } as TextStyle,
 });
+
+export default memo(DialerButton);

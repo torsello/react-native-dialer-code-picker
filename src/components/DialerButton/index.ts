@@ -1,1 +1,1 @@
-export { DialerButton } from './DialerButton';
+export { default } from './DialerButton';

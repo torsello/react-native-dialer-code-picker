@@ -1,2 +1,2 @@
-export { DialerPicker } from './DialerPicker/DialerPicker';
-export { DialerButton } from './DialerButton/DialerButton';
+export { DialerPicker, DialerList } from './DialerPicker';
+export { default } from './DialerButton';

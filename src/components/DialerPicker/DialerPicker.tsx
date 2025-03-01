@@ -1,9 +1,6 @@
 import {
   Animated,
   Dimensions,
-  Easing,
-  FlatList,
-  Keyboard,
   Modal,
   Platform,
   StyleSheet,
@@ -14,9 +11,8 @@ import {
   ViewStyle,
   StyleProp,
 } from 'react-native';
-import { DialerButton } from '../DialerButton';
+import DialerButton from '../DialerButton';
 import { dialerRemover } from '../../helpers/dialerRemover';
-import { useKeyboardStatus } from '../../helpers/useKeyboardStatus';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { removeDiacritics } from '../../helpers/diacriticsRemover';
 import { CountryName, DialerCode } from '../../constants/dialerCodes';
@@ -26,26 +22,70 @@ import {
   DialerListHeaderComponentProps,
 } from '../../types';
 import { getCountryName } from '../../helpers/getCountryName';
+import { DialerList } from './DialerList';
 
 const height = Dimensions.get('window').height;
 
 /**
- * Dialer picker component
- * @param {?boolean} show Hide or show component by using this props
- * @param {?boolean} disableBackdrop Hide or show component by using this props
- * @param {?boolean} enableModalAvoiding Is modal should avoid keyboard ? On android to work required to use with androidWindowSoftInputMode with value pan, by default android will avoid keyboard by itself
- * @param {?string} androidWindowSoftInputMode Hide or show component by using this props
- * @param {?string} inputPlaceholder Text to showing in input
- * @param {?string} searchMessage Text to show user when no dialer to show
- * @param {?string} lang Current selected lang by user
- * @param {?string} initialState Here you should define initial dial code
- * @param {?array} excludedCountries Array of countries which should be excluded from picker
- * @param {Function} pickerButtonOnPress Function to receive selected dialer
- * @param {Function} onBackdropPress Function to receive selected dialer
- * @param {Function} onRequestClose Function to receive selected dialer
- * @param {?Object} style Styles
- * @param {?React.ReactNode} itemTemplate Dialer list template
- * @param rest
+ * DialerPicker Component
+ *
+ * A customizable dialer picker component with modal support, allowing users to:
+ * - Search countries by name or dial code.
+ * - Exclude or include specific countries.
+ * - Customize the modal, search field, and list appearance.
+ *
+ * @param {boolean} isVisible - Controls the visibility of the modal.
+ * @param {boolean} [enableModalAvoiding] - Enables keyboard avoiding behavior on Android when used with `androidWindowSoftInputMode="pan"`.
+ * @param {boolean} [disableBackdrop] - If `true`, disables the backdrop behind the modal.
+ * @param {string} [androidWindowSoftInputMode] - Defines keyboard behavior on Android (e.g., `"pan"`).
+ * @param {string} [searchPlaceholder] - Placeholder text for the search input field.
+ * @param {string} [searchPlaceholderTextColor] - Color of the placeholder text in the search input field.
+ * @param {string} [searchNotFoundMessage] - Message displayed when no results are found.
+ * @param {keyof CountryName} lang - Selected language for country names (e.g., `'en'`, `'es'`). Default is `'en'`.
+ * @param {string} [defaultDialCode] - Default dial code to be pre-selected.
+ * @param {string} [otherCountriesHeaderTitle] - Title for the "Other Countries" section.
+ * @param {TextStyle} [otherCountriesHeaderTitleStyle] - Styles for the "Other Countries" header title.
+ * @param {StyleProp<ViewStyle>} [searchContainerStyle] - Custom styles for the search input container.
+ *
+ * @param {string[]} [excludedCountries] - Array of country codes to be excluded from the picker.
+ * @param {string[]} [showOnly] - Array of country codes to be exclusively shown.
+ * @param {string[]} [popularCountries] - Array of popular countries to be displayed at the top.
+ *
+ * @param {Function} onDialCodeSelect - Callback function triggered when a dial code is selected. Receives the selected item as an argument.
+ * @example
+ * onDialCodeSelect={(item) => console.log(item)}
+ *
+ * @param {Function} [onBackdropPress] - Callback function triggered when the backdrop is pressed (only if `disableBackdrop` is `false`).
+ * @param {Function} [onClose] - Callback function triggered when the modal is closed.
+ *
+ * @param {(props: DialerItemTemplateProps) => JSX.Element | React.MemoExoticComponent<(props: DialerItemTemplateProps) => JSX.Element>} [itemTemplate]
+ * Custom component for rendering each item in the list.
+ * @example
+ * itemTemplate={(props) => <CustomItemComponent {...props} />}
+ *
+ * @param {(props: DialerListHeaderComponentProps) => JSX.Element} [headerComponent]
+ * Custom component for rendering the list header, typically for popular countries.
+ * @example
+ * headerComponent={(props) => <CustomHeader {...props} />}
+ *
+ * @param {DialerStyle} [style] - Customizable styles for the component.
+ * The `DialerStyle` object allows partial overrides of specific UI elements:
+ * - `backdrop` (ViewStyle): Style for the background overlay (if used in a modal).
+ * - `modal` (ViewStyle): Style for the modal container.
+ * - `line` (ViewStyle): Style for the separator line between items.
+ * - `searchNotFoundMessageText` (TextStyle): Style for the "No results found" message text.
+ * - `itemsList` (ContentStyle): Style for the main list container.
+ * - `searchNotFoundContainer` (ViewStyle): Style for the container wrapping the "No results found" message.
+ * - `textInput` (TextStyle): Style for the search input field.
+ * - `dialerButtonStyles` (ViewStyle): Style for the button representing a dialer item.
+ * - `flag` (TextStyle): Style for the country flag icon (if applicable).
+ * - `dialCode` (TextStyle): Style for the country dial code text.
+ * - `dialerName` (TextStyle): Style for the country name text.
+ * - `otherCountriesHeaderTitleStyle` (TextStyle): Style for the "Other Countries" header title.
+ * - `searchContainerStyle` (ViewStyle): Style for the search bar container.
+ *
+ * @param {boolean} [showVerticalScrollIndicator] - Whether to show the vertical scroll indicator. Default is `false`.
+ * @param {object} [rest] - Any additional props will be passed to the internal list component.
  */
 
 interface Props {
@@ -54,22 +94,25 @@ interface Props {
   popularCountries?: string[];
   style?: DialerStyle;
   isVisible: boolean;
-  enableModalAvoiding?: boolean;
   disableBackdrop?: boolean;
   onBackdropPress?: (...args: any) => any;
   onDialCodeSelect: (item: DialerCode) => any;
-  itemTemplate?: (props: DialerItemTemplateProps) => JSX.Element;
+  itemTemplate?:
+    | ((props: DialerItemTemplateProps) => JSX.Element)
+    | React.MemoExoticComponent<
+        (props: DialerItemTemplateProps) => JSX.Element
+      >;
   headerComponent?: (props: DialerListHeaderComponentProps) => JSX.Element;
   onClose?: (...args: any) => any;
   lang: keyof CountryName;
   searchPlaceholder?: string;
   searchPlaceholderTextColor?: TextStyle['color'];
-  searchMessage?: string;
-  androidWindowSoftInputMode?: string;
+  searchNotFoundMessage?: string;
   defaultDialCode?: string;
   otherCountriesHeaderTitle?: string;
   otherCountriesHeaderTitleStyle?: TextStyle;
   searchContainerStyle?: StyleProp<ViewStyle>;
+  showVerticalScrollIndicator?: boolean;
 }
 
 export const DialerPicker = ({
@@ -78,11 +121,9 @@ export const DialerPicker = ({
   onDialCodeSelect,
   searchPlaceholder,
   searchPlaceholderTextColor,
-  searchMessage,
+  searchNotFoundMessage,
   lang = 'en',
   style,
-  enableModalAvoiding,
-  androidWindowSoftInputMode,
   onBackdropPress,
   disableBackdrop,
   excludedCountries,
@@ -92,55 +133,16 @@ export const DialerPicker = ({
   headerComponent: HeaderComponent,
   itemTemplate: ItemTemplate = DialerButton,
   otherCountriesHeaderTitle,
+  showVerticalScrollIndicator = false,
   ...rest
 }: Props) => {
   const filteredCodes = useMemo(
     () => dialerRemover(excludedCountries),
     [excludedCountries]
   );
-  const keyboardStatus = useKeyboardStatus();
   const animationDriver = useRef(new Animated.Value(0)).current;
-  const animatedMargin = useRef(new Animated.Value(0)).current;
   const [searchValue, setSearchValue] = useState<string>(defaultDialCode || '');
   const [showModal, setShowModal] = useState<boolean>(false);
-
-  const animateMargin = useCallback(
-    (toValue: number) => {
-      Animated.timing(animatedMargin, {
-        toValue,
-        duration: 190,
-        easing: Easing.ease,
-        useNativeDriver: false,
-      }).start();
-    },
-    [animatedMargin]
-  );
-
-  useEffect(() => {
-    if (
-      enableModalAvoiding &&
-      (keyboardStatus.keyboardPlatform === 'ios' ||
-        (keyboardStatus.keyboardPlatform === 'android' &&
-          androidWindowSoftInputMode === 'pan'))
-    ) {
-      animateMargin(keyboardStatus.isOpen ? keyboardStatus.keyboardHeight : 0);
-    }
-  }, [
-    keyboardStatus.isOpen,
-    keyboardStatus.keyboardHeight,
-    enableModalAvoiding,
-    animateMargin,
-    keyboardStatus.keyboardPlatform,
-    androidWindowSoftInputMode,
-  ]);
-
-  const preparedPopularCountries = useMemo(() => {
-    const popularSet = new Set(
-      popularCountries?.map((short) => short.toUpperCase())
-    );
-
-    return filteredCodes?.filter((dialer) => popularSet.has(dialer?.code));
-  }, [popularCountries, filteredCodes]);
 
   const codes = useMemo(() => {
     let newCodes = filteredCodes;
@@ -199,8 +201,8 @@ export const DialerPicker = ({
     (toValue: number, onComplete?: () => void) => {
       Animated.timing(animationDriver, {
         toValue,
-        duration: 400,
-        useNativeDriver: true,
+        duration: 200,
+        useNativeDriver: false,
       }).start(onComplete);
     },
     [animationDriver]
@@ -222,86 +224,16 @@ export const DialerPicker = ({
     }
   }, [closeModal, isVisible, showModal]);
 
-  const renderItemOnPress = useCallback(
-    (item: DialerCode) => {
-      Keyboard.dismiss();
-      onDialCodeSelect?.(item);
-    },
-    [onDialCodeSelect]
-  );
-
-  const renderItem = useCallback(
-    ({ item }: { item: DialerCode }) => {
-      const itemName = getCountryName(item?.name, lang);
-
-      return (
-        <ItemTemplate
-          key={item.code}
-          item={item}
-          style={style}
-          name={itemName}
-          onPress={() => renderItemOnPress(item)}
-        />
-      );
-    },
-    [lang, ItemTemplate, style, renderItemOnPress]
-  );
-
   const onStartShouldSetResponder = useCallback(() => {
     onBackdropPress?.();
     return false;
   }, [onBackdropPress]);
 
-  const onPressHeaderItem = useCallback(
-    (item: DialerCode) => {
-      Keyboard.dismiss();
-      onDialCodeSelect?.(item);
-    },
-    [onDialCodeSelect]
-  );
-
-  const renderHeaderComponent = useMemo(() => {
-    if (popularCountries && HeaderComponent && !searchValue) {
-      return (
-        <View>
-          <HeaderComponent
-            countries={preparedPopularCountries}
-            lang={lang}
-            onPress={onPressHeaderItem}
-          />
-          <Text style={style?.otherCountriesHeaderTitleStyle}>
-            {otherCountriesHeaderTitle || 'Other Countries'}
-          </Text>
-        </View>
-      );
-    }
-    return null;
-  }, [
-    popularCountries,
-    HeaderComponent,
-    searchValue,
-    preparedPopularCountries,
-    lang,
-    onPressHeaderItem,
-    style?.otherCountriesHeaderTitleStyle,
-    otherCountriesHeaderTitle,
-  ]);
-
-  const flatListStyle = useMemo(
-    () => (style?.itemsList ? [style.itemsList] : undefined),
-    [style]
-  );
-
-  const modalBackdropStyle = useMemo(
-    () => [
-      {
-        opacity: modalBackdropFade,
-      },
-      styles.backdrop,
-      style?.backdrop,
-    ],
-    [modalBackdropFade, style?.backdrop]
-  );
+  const modalBackdropStyle = [
+    { opacity: modalBackdropFade },
+    styles.backdrop,
+    style?.backdrop,
+  ];
 
   const modalStyle = useMemo(
     () => [
@@ -318,24 +250,19 @@ export const DialerPicker = ({
     [modalPosition, style?.modal]
   );
 
-  const modalInnerStyle = useMemo(
-    () => [styles.modalInner, style?.modalInner, { height: animatedMargin }],
-    [style?.modalInner, animatedMargin]
-  );
-
   const textInputStyle = useMemo(
     () => [styles.searchBar, style?.textInput],
     [style?.textInput]
   );
 
-  const searchMessageTextStyle = useMemo(
-    () => [styles.searchMessage, style?.searchMessageText],
-    [style?.searchMessageText]
+  const searchNotFoundMessageTextStyle = useMemo(
+    () => [styles.searchMessage, style?.searchNotFoundMessageText],
+    [style?.searchNotFoundMessageText]
   );
 
-  const dialerMessageContainerStyle = useMemo(
-    () => [styles.dialerMessage, style?.dialerMessageContainer],
-    [style?.dialerMessageContainer]
+  const searchNotFoundContainerStyle = useMemo(
+    () => [styles.dialerMessage, style?.searchNotFoundContainer],
+    [style?.searchNotFoundContainer]
   );
 
   const lineStyle = useMemo(() => [styles.line, style?.line], [style?.line]);
@@ -361,41 +288,49 @@ export const DialerPicker = ({
           />
         )}
         <Animated.View style={modalStyle}>
-          <View style={searchContainerStyles}>
-            <TextInput
-              style={textInputStyle}
-              value={searchValue}
-              onChangeText={setSearchValue}
-              placeholder={searchPlaceholder || 'Search your dialer'}
-              placeholderTextColor={searchPlaceholderTextColor || '#8c8c8c'}
-              testID="dialerCodesPickerSearchInput"
-              {...rest}
-            />
-          </View>
-          <View style={lineStyle} />
-          {resultCountries.length === 0 ? (
-            <View style={dialerMessageContainerStyle}>
-              <Text style={searchMessageTextStyle}>
-                {searchMessage || 'Sorry we cant find your dialer :('}
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              showsVerticalScrollIndicator={false}
-              data={resultCountries || codes}
-              keyExtractor={(item) => item.code || item.dial_code}
-              initialNumToRender={10}
-              maxToRenderPerBatch={10}
-              style={flatListStyle}
-              keyboardShouldPersistTaps="handled"
-              renderItem={renderItem}
-              testID="dialerCodesPickerFlatList"
-              ListHeaderComponent={renderHeaderComponent}
-              {...rest}
-            />
+          {showModal && (
+            <>
+              <View style={searchContainerStyles}>
+                <TextInput
+                  style={textInputStyle}
+                  value={searchValue}
+                  onChangeText={setSearchValue}
+                  placeholder={searchPlaceholder || 'Search for a dial code'}
+                  placeholderTextColor={searchPlaceholderTextColor || '#8c8c8c'}
+                  testID="dialerCodesPickerSearchInput"
+                  {...rest}
+                />
+              </View>
+              <View style={lineStyle} />
+              {resultCountries.length === 0 ? (
+                <View style={searchNotFoundContainerStyle}>
+                  <Text style={searchNotFoundMessageTextStyle}>
+                    {searchNotFoundMessage ||
+                      "We couldn't find any matching dialer codes."}
+                  </Text>
+                </View>
+              ) : (
+                <DialerList
+                  excludedCountries={excludedCountries}
+                  popularCountries={popularCountries}
+                  showOnly={showOnly}
+                  onDialCodeSelect={onDialCodeSelect}
+                  style={style}
+                  otherCountriesHeaderTitleStyle={
+                    style?.otherCountriesHeaderTitleStyle
+                  }
+                  searchContainerStyle={style?.searchContainerStyle}
+                  itemTemplate={ItemTemplate}
+                  headerComponent={HeaderComponent}
+                  lang={lang}
+                  otherCountriesHeaderTitle={otherCountriesHeaderTitle}
+                  showVerticalScrollIndicator={showVerticalScrollIndicator}
+                  searchValue={searchValue}
+                />
+              )}
+            </>
           )}
         </Animated.View>
-        <Animated.View style={modalInnerStyle} />
       </View>
     </Modal>
   );
@@ -444,11 +379,6 @@ export const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     justifyContent: 'flex-end',
-  },
-  modalInner: {
-    zIndex: 99,
-    backgroundColor: 'white',
-    width: '100%',
   },
   searchBar: {
     flex: 1,

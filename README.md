@@ -1,7 +1,14 @@
-# 📞 react-native-dialer-code-picker
+# react-native-dialer-code-picker ⚡⚡⚡
 
-A performant and customizable dialer code picker for React Native apps.  
-Easily integrate country dialer codes into your React Native application with a flexible and easy-to-use component.
+This library offers a multi-language country dialer code picker with advanced search functionality, delivering a smooth and high-performance user experience. Designed to be fully cross-platform, it supports React Native and Expo out of the box.
+
+🚀 **Built for Performance:** Enhanced with optimized rendering and efficient animations for seamless navigation using FlashList.  
+🐞 **Issue-Free Experience:** Developed with careful attention to detail, addressing common issues found in similar libraries.  
+🔄 **Flexible & Customizable:** Easily adaptable to your design needs with custom templates and styling options.
+
+> **Inspired by the popular `react-native-country-codes-picker`, but enhanced with better performance and stability.** If you're looking for a modern alternative with optimized rendering and customization capabilities, this is the picker for you.
+
+**Looking for a specific country or locale? Feel free to contribute with a PR. ⚡⚡⚡**
 
 ---
 
@@ -11,15 +18,21 @@ You can install it using **npm** or **yarn**:
 
 ```sh
 # Using npm
-npm install react-native-dialer-code-picker
+npm install react-native-dialer-code-picker @shopify/flash-list
 
 # Using yarn
-yarn add react-native-dialer-code-picker
+yarn add react-native-dialer-code-picker @shopify/flash-list
 ```
+
+> **Note:** This library uses `FlashList` from `@shopify/flash-list` for improved performance, so make sure to install it as a dependency.
 
 ---
 
 ## ⚙️ Basic Usage
+
+### Using `DialerPicker` (Built-in Modal)
+
+The `DialerPicker` component includes a built-in modal, so you can directly use it without handling modal logic manually.
 
 ```tsx
 import React, { useState } from 'react';
@@ -55,96 +68,87 @@ export default App;
 
 ---
 
-## 💡 Advanced Examples
+## 💡 Advanced Usage
 
-### With `headerComponent`
+### Using `DialerList` (Custom Modal or Bottom Sheet)
 
-```tsx
-<DialerPicker
-  lang="en"
-  isVisible={isVisible}
-  onDialCodeSelect={handleDialerSelect}
-  onClose={() => setIsVisible(false)}
-  headerComponent={({ countries, lang, onPress }) => (
-    <View>
-      <Text>Popular Countries:</Text>
-      {countries.map((item) => (
-        <Button
-          key={item.code}
-          title={item.name[lang]}
-          onPress={() => onPress(item)}
-        />
-      ))}
-    </View>
-  )}
-  popularCountries={['US', 'GB', 'CA']}
-  otherCountriesHeaderTitle="Countries"
-/>
-```
-
-### With Custom Item Template
+If you want to use your own modal (e.g., `BottomSheetModal`), you can import `DialerList` and handle the modal separately.
 
 ```tsx
-<DialerPicker
-  lang="en"
-  isVisible={isVisible}
-  onDialCodeSelect={handleDialerSelect}
-  onClose={() => setIsVisible(false)}
-  itemTemplate={({ item, name, onPress }) => (
-    <TouchableOpacity onPress={onPress} style={{ padding: 10 }}>
-      <Text>
-        {item.flag} {name} ({item.dial_code})
-      </Text>
-    </TouchableOpacity>
-  )}
-/>
+import React, { useState, useCallback } from 'react';
+import { View, Button } from 'react-native';
+import { DialerList } from 'react-native-dialer-code-picker';
+import {
+  BottomSheetModal,
+  BottomSheetModalProvider,
+} from '@gorhom/bottom-sheet';
+
+const BottomSheetDialer = () => {
+  const [bottomSheetRef, setBottomSheetRef] = useState(null);
+
+  const openSheet = useCallback(() => {
+    bottomSheetRef?.present();
+  }, [bottomSheetRef]);
+
+  return (
+    <BottomSheetModalProvider>
+      <View>
+        <Button title="Open Dialer" onPress={openSheet} />
+        <BottomSheetModal
+          ref={setBottomSheetRef}
+          index={0}
+          snapPoints={['50%']}
+        >
+          <DialerList
+            onDialCodeSelect={(item) => {
+              console.log(item.dial_code);
+              bottomSheetRef?.dismiss();
+            }}
+            lang="en"
+          />
+        </BottomSheetModal>
+      </View>
+    </BottomSheetModalProvider>
+  );
+};
 ```
+
+### Comparison: `DialerPicker` vs. `DialerList`
+
+| Feature                | `DialerPicker` (Built-in Modal) | `DialerList` (Standalone) |
+| ---------------------- | ------------------------------- | ------------------------- |
+| Includes a modal?      | ✅ Yes                          | ❌ No                     |
+| Manages its own state? | ✅ Yes                          | ❌ No                     |
+| Custom modal support?  | ❌ No, uses default modal       | ✅ Yes                    |
+| Ideal for...?          | Quick implementation            | Full customization        |
 
 ---
 
 ## 📚 Props and API Details
 
-| Prop                | Type                                                     | Description                                       | Required | Default        |
-| ------------------- | -------------------------------------------------------- | ------------------------------------------------- | -------- | -------------- |
-| `isVisible`         | `boolean`                                                | Shows or hides the dialer picker.                 | ✅       | `false`        |
-| `onDialCodeSelect`  | `(item: DialerCode) => void`                             | Callback when a dialer code is selected.          | ✅       | `-`            |
-| `onClose`           | `() => void`                                             | Callback when the modal is closed.                | ❌       | `-`            |
-| `searchPlaceholder` | `string`                                                 | Placeholder text for the search input.            | ❌       | `"Search..."`  |
-| `lang`              | `string`                                                 | Selected language for country names.              | ❌       | `"en"`         |
-| `excludedCountries` | `string[]`                                               | List of country codes to exclude from the picker. | ❌       | `[]`           |
-| `popularCountries`  | `string[]`                                               | List of popular countries to show at the top.     | ❌       | `[]`           |
-| `headerComponent`   | `(props: DialerListHeaderComponentProps) => JSX.Element` | Custom component for the list header.             | ❌       | `-`            |
-| `itemTemplate`      | `(props: DialerItemTemplateProps) => JSX.Element`        | Custom template to render each item.              | ❌       | `DialerButton` |
-| `style`             | `DialerStyle`                                            | Style object to customize the picker.             | ❌       | `-`            |
+### DialerPicker Props
 
----
+| Prop                | Type                                                     | Description                                   | Required | Default       |
+| ------------------- | -------------------------------------------------------- | --------------------------------------------- | -------- | ------------- |
+| `isVisible`         | `boolean`                                                | Controls the visibility of the modal.         | ✅       | `false`       |
+| `onDialCodeSelect`  | `(item: DialerCode) => void`                             | Callback when a dialer code is selected.      | ✅       | `-`           |
+| `onClose`           | `() => void`                                             | Callback when the modal is closed.            | ❌       | `-`           |
+| `searchPlaceholder` | `string`                                                 | Placeholder text for the search input.        | ❌       | `"Search..."` |
+| `lang`              | `string`                                                 | Selected language for country names.          | ❌       | `"en"`        |
+| `popularCountries`  | `string[]`                                               | List of popular countries to show at the top. | ❌       | `[]`          |
+| `headerComponent`   | `(props: DialerListHeaderComponentProps) => JSX.Element` | Custom component for the list header.         | ❌       | `-`           |
+| `style`             | `DialerStyle`                                            | Style object to customize the picker.         | ❌       | `-`           |
 
-## 🎨 Customizable Styles
+### DialerList Props
 
-You can customize the styles using the `style` prop by passing a `DialerStyle` object. Example:
-
-```tsx
-<DialerPicker
-  lang="en"
-  isVisible={isVisible}
-  onDialCodeSelect={handleDialerSelect}
-  onClose={() => setIsVisible(false)}
-  style={{
-    modal: { backgroundColor: '#fff' },
-    dialerButtonStyles: { paddingVertical: 15 },
-    dialerName: { color: '#007bff' },
-  }}
-/>
-```
-
----
-
-## 🔗 Inspiration
-
-This component was inspired by [react-native-country-codes-picker](https://www.npmjs.com/package/react-native-country-codes-picker), which served as a base to develop a more updated version with enhanced performance and customization.
-
-**There is no official affiliation with the developers of the original library.**  
-This version includes additional functionalities and optimizations for a better React Native experience.
+| Prop                | Type                                                     | Description                                         | Required | Default |
+| ------------------- | -------------------------------------------------------- | --------------------------------------------------- | -------- | ------- |
+| `excludedCountries` | `string[]`                                               | List of country codes to exclude.                   | ❌       | `[]`    |
+| `showOnly`          | `string[]`                                               | List of country codes to exclusively show.          | ❌       | `[]`    |
+| `popularCountries`  | `string[]`                                               | List of popular country codes displayed at the top. | ❌       | `[]`    |
+| `onDialCodeSelect`  | `(item: DialerCode) => void`                             | Callback triggered when a dial code is selected.    | ✅       | `-`     |
+| `lang`              | `string`                                                 | Language code for country names.                    | ✅       | `"en"`  |
+| `headerComponent`   | `(props: DialerListHeaderComponentProps) => JSX.Element` | Custom component for the list header.               | ❌       | `-`     |
 
 ---
 
