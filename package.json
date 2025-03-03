@@ -21,9 +21,10 @@
     "search",
     "animated"
   ],
-  "source": "./src/index.tsx",
+  "source": "./lib/typescript/commonjs/src/index.d.ts",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
+  "types": "./lib/typescript/commonjs/src/index.d.ts",
   "exports": {
     ".": {
       "import": {
@@ -37,23 +38,10 @@
     }
   },
   "files": [
-    "src",
     "lib",
-    "android",
-    "ios",
-    "cpp",
-    "*.podspec",
-    "react-native.config.js",
-    "!ios/build",
-    "!android/build",
-    "!android/gradle",
-    "!android/gradlew",
-    "!android/gradlew.bat",
-    "!android/local.properties",
-    "!**/__tests__",
-    "!**/__fixtures__",
-    "!**/__mocks__",
-    "!**/.*"
+    "README.md",
+    "LICENSE",
+    "*.podspec"
   ],
   "scripts": {
     "example": "yarn workspace react-native-dialer-code-picker-example",
@@ -99,14 +87,15 @@
     "react-native": "0.72.5",
     "react-native-builder-bob": "^0.37.0",
     "release-it": "^17.10.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "@shopify/flash-list": "^1.7.3"
   },
   "resolutions": {
     "@types/react": "^18.2.44"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-native": "^0.72.0",
+    "react": "*",
+    "react-native": "*",
     "@shopify/flash-list": "^1.7.3"
   },
   "packageManager": "yarn@1.22.22",
