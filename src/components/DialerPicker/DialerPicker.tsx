@@ -44,7 +44,6 @@ const height = Dimensions.get('window').height;
  * @param {keyof CountryName} lang - Selected language for country names (e.g., `'en'`, `'es'`). Default is `'en'`.
  * @param {string} [defaultDialCode] - Default dial code to be pre-selected.
  * @param {string} [otherCountriesHeaderTitle] - Title for the "Other Countries" section.
- * @param {TextStyle} [otherCountriesHeaderTitleStyle] - Styles for the "Other Countries" header title.
  * @param {StyleProp<ViewStyle>} [searchContainerStyle] - Custom styles for the search input container.
  *
  * @param {string[]} [excludedCountries] - Array of country codes to be excluded from the picker.
@@ -110,7 +109,6 @@ interface Props {
   searchNotFoundMessage?: string;
   defaultDialCode?: string;
   otherCountriesHeaderTitle?: string;
-  otherCountriesHeaderTitleStyle?: TextStyle;
   searchContainerStyle?: StyleProp<ViewStyle>;
   showVerticalScrollIndicator?: boolean;
 }
@@ -316,9 +314,6 @@ export const DialerPicker = ({
                   showOnly={showOnly}
                   onDialCodeSelect={onDialCodeSelect}
                   style={style}
-                  otherCountriesHeaderTitleStyle={
-                    style?.otherCountriesHeaderTitleStyle
-                  }
                   searchContainerStyle={style?.searchContainerStyle}
                   itemTemplate={ItemTemplate}
                   headerComponent={HeaderComponent}

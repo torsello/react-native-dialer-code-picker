@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Keyboard,
-  StyleProp,
-  Text,
-  TextStyle,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { Keyboard, StyleProp, Text, View, ViewStyle } from 'react-native';
 import { type CountryName, type DialerCode } from '../../constants/dialerCodes';
 import { useCallback, useMemo } from 'react';
 import { dialerRemover } from '../../helpers/dialerRemover';
@@ -64,7 +57,6 @@ import { removeDiacritics } from '../../helpers/diacriticsRemover';
  * - `searchContainerStyle` (ViewStyle): Style for the search bar container.
  *
  * @param {StyleProp<ViewStyle>} [searchContainerStyle] - Custom styles for the search container.
- * @param {TextStyle} [otherCountriesHeaderTitleStyle] - Style for the header title of other countries.
  * @param {object} [rest] - Any additional props passed to the internal `FlashList` component.
  */
 
@@ -74,7 +66,6 @@ interface DialerListProps {
   showOnly?: string[];
   onDialCodeSelect: (item: DialerCode) => any;
   style?: DialerStyle;
-  otherCountriesHeaderTitleStyle?: TextStyle;
   searchContainerStyle?: StyleProp<ViewStyle>;
   itemTemplate?:
     | ((props: DialerItemTemplateProps) => JSX.Element)

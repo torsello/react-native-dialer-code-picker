@@ -140,7 +140,6 @@ const BottomSheetDialer = () => {
 | `lang`                           | `string`                                                 | Selected language for country names.                               | ✅       | `"en"`         |
 | `defaultDialCode`                | `string`                                                 | Default dial code to be pre-selected.                              | ❌       | `-`            |
 | `otherCountriesHeaderTitle`      | `string`                                                 | Title for the "Other Countries" section.                           | ❌       | `-`            |
-| `otherCountriesHeaderTitleStyle` | `TextStyle`                                              | Styles for the "Other Countries" header title.                     | ❌       | `-`            |
 | `searchContainerStyle`           | `StyleProp<ViewStyle>`                                   | Custom styles for the search input container.                      | ❌       | `-`            |
 | `excludedCountries`              | `string[]`                                               | List of country codes to exclude from the picker.                  | ❌       | `[]`           |
 | `showOnly`                       | `string[]`                                               | List of country codes to exclusively show.                         | ❌       | `[]`           |
@@ -166,7 +165,6 @@ const BottomSheetDialer = () => {
 | `itemTemplate`                   | `(props: DialerItemTemplateProps) => JSX.Element`        | Custom component for rendering each item.                          | ❌       | `DialerButton` |
 | `style`                          | `DialerStyle`                                            | Style object to customize the component.                           | ❌       | `-`            |
 | `searchContainerStyle`           | `StyleProp<ViewStyle>`                                   | Custom styles for the search container.                            | ❌       | `-`            |
-| `otherCountriesHeaderTitleStyle` | `TextStyle`                                              | Style for the "Other Countries" header title.                      | ❌       | `-`            |
 | `showVerticalScrollIndicator`    | `boolean`                                                | Whether to show the vertical scroll indicator. Default is `false`. | ❌       | `false`        |
 | `searchValue`                    | `string`                                                 | Text input for filtering countries by name or dial code.           | ❌       | `-`            |
 
