@@ -10,6 +10,11 @@ This library offers a multi-language country dialer code picker with advanced se
 
 **Looking for a specific country or locale? Feel free to contribute with a PR. ⚡⚡⚡**
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b942d5c4-983b-4289-a052-5e65d4f74340" alt="Simulator Screen Recording - iPhone 15 Plus - 2025-04-19 at 10 03 59" />
+</p>
+
+
 ---
 
 ## 🚀 Installation
