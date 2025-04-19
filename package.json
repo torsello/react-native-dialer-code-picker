@@ -1,6 +1,6 @@
 {
   "name": "react-native-dialer-code-picker",
-  "version": "1.0.4",
+  "version": "1.0.3",
   "description": "Multi-language country dialer code picker with advanced search functionality, optimized performance, and customizable templates for React Native and Expo. Inspired by react-native-country-codes-picker but enhanced for better performance and issue-free experience.",
   "keywords": [
     "react-native",
