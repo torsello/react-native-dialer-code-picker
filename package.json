@@ -91,7 +91,8 @@
     "@shopify/flash-list": "^1.7.3"
   },
   "resolutions": {
-    "@types/react": "^18.2.44"
+    "@types/react": "^18.2.44",
+    "basic-ftp": "5.2.2"
   },
   "peerDependencies": {
     "react": "*",
