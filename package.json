@@ -92,7 +92,8 @@
   },
   "resolutions": {
     "@types/react": "^18.2.44",
-    "basic-ftp": "5.2.2"
+    "basic-ftp": "5.2.2",
+    "lodash": "4.18.1"
   },
   "peerDependencies": {
     "react": "*",
