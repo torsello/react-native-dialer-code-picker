@@ -1,39 +1,51 @@
 name: Publish to npm
 
-# Publishes the package when a GitHub Release is published.
-# The release tag must match package.json (v1.2.3 -> "version": "1.2.3").
-# Auth uses npm Trusted Publishing (OIDC): no NPM_TOKEN secret is needed,
-# but the package must list this repo and workflow as a trusted publisher on npmjs.com.
+# Two ways to release:
+#
+# 1. Run this workflow by hand (Actions -> Publish to npm -> Run workflow, or `yarn release <type>`):
+#    pick patch / minor / major (or a beta). It bumps package.json, commits and tags vX.Y.Z on main,
+#    publishes to npm and creates the GitHub Release with generated notes.
+# 2. Publish a GitHub Release yourself with a tag that matches package.json (v1.2.3 -> "1.2.3").
+#
+# Auth uses npm Trusted Publishing (OIDC): no NPM_TOKEN secret. On npmjs.com the package lists
+# this repo and this workflow file (publish.yml) as a trusted publisher, so keep the file name.
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version to release
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+          - prepatch
+          - preminor
+          - premajor
+          - prerelease
 
 permissions:
-  contents: read
+  contents: write # push the version commit and tag, create the release (manual runs)
   id-token: write # OIDC for npm Trusted Publishing and provenance
 
 concurrency:
-  group: publish-${{ github.ref }}
+  group: publish
   cancel-in-progress: false
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Manual releases only from main
+    if: github.event_name == 'release' || github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup
-
-      - name: Check that the tag matches package.json
-        run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          VERSION="$(node -p "require('./package.json').version")"
-          if [ "$TAG" != "$VERSION" ]; then
-            echo "::error::Release tag $GITHUB_REF_NAME does not match package.json version $VERSION"
-            exit 1
-          fi
 
       - name: Lint
         run: yarn lint
@@ -44,11 +56,46 @@ jobs:
       - name: Test
         run: yarn test --maxWorkers=2
 
+      - name: Bump version (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Commits package.json and creates the vX.Y.Z tag; pre-releases look like 1.2.0-beta.0
+          npm version "$BUMP" --preid beta -m "chore: release %s"
+          echo "RELEASE_TAG=v$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
+
+      - name: Check that the tag matches package.json (release event)
+        if: github.event_name == 'release'
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "${GITHUB_REF_NAME#v}" != "$VERSION" ]; then
+            echo "::error::Release tag $GITHUB_REF_NAME does not match package.json version $VERSION"
+            exit 1
+          fi
+          echo "RELEASE_TAG=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
+
+      - name: Push version commit and tag (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        run: git push origin HEAD:main "$RELEASE_TAG"
+
       - name: Update npm (Trusted Publishing needs npm 11.5.1 or later)
         run: npm install -g npm@latest
 
       - name: Publish
         run: |
-          # Pre-releases (1.2.0-beta.1) go to the "next" dist-tag instead of "latest"
-          if [[ "$GITHUB_REF_NAME" == *-* ]]; then TAG=next; else TAG=latest; fi
+          # Pre-releases (1.2.0-beta.0) go to the "next" dist-tag instead of "latest"
+          if [[ "$RELEASE_TAG" == *-* ]]; then TAG=next; else TAG=latest; fi
           npm publish --provenance --access public --tag "$TAG"
+
+      - name: Create GitHub release (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PRE=""
+          if [[ "$RELEASE_TAG" == *-* ]]; then PRE="--prerelease"; fi
+          # A release created with GITHUB_TOKEN does not trigger this workflow again
+          gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --generate-notes --verify-tag $PRE
