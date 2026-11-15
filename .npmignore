@@ -15,7 +15,6 @@ tsconfig.json
 tsconfig.build.json
 babel.config.js
 lefthook.yml
-bump-minor.sh
 
 .git
 .github/
